@@ -5,11 +5,14 @@
 T5Gemmaについてのみ修正を加えています。
 
 １　入力されたカンマをスペースに変換
-２　attention_maskをモデルに渡し、パディング部分を無視させるようにした
-３　llm_to_sdxl_adapter.pyで、MultiheadAttentionのロジックを正しく実装し直し、温度を適用するクラスclass SharpenedMultiheadAttention(nn.MultiheadAttention)
-４　オプションでデバッグを出力することが出来るようにした。
 
-３についての意義はなんとも言えないところですが追加してみたというものです。temperature=0.60 としていますので、ここを変えて調整してください。
+２　attention_maskをモデルに渡し、パディング部分を無視させるようにした
+
+３　llm_to_sdxl_adapter.pyで、MultiheadAttentionのロジックを正しく実装し直し、温度を適用するクラスclass SharpenedMultiheadAttention(nn.MultiheadAttention)にした
+
+４　オプションでデバッグを出力することが出来るようにした
+
+３についての意義はなんとも言えないところですが追加してみたというものです。temperature=0.60 としていますので、ここを変えて調整してください
 
 # ComfyUI LLM SDXL Adapter
 
