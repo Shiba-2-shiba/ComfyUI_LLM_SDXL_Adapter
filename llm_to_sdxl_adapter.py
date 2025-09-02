@@ -147,7 +147,7 @@ class LLMToSDXLAdapter(nn.Module):
             num_heads=num_heads,
             batch_first=True,
             dropout=dropout,
-            temperature=0.60 
+            temperature=0.70 
         )
         
         self.compression_norm = nn.LayerNorm(sdxl_seq_dim)
