@@ -1,3 +1,31 @@
+# ComfyUI LLM SDXL Adapterのフォーク版です。
+
+追加内容　主にllm_to_sdxl_adapter.py
+
+①SDPA（scaled_dot_product_attention）＋温度：TemperaturedMultiheadAttention → sdpa_with_temperature() による SDPA優先／MHAフォールバック
+
+②F.padでの高速パディング
+
+③attention_maskの厳密化
+
+④位置埋め込みの安定化
+
+⑤ゲート改良＋スキップα
+
+スクリプトに修正を加えたため、現行のアダプターモデルだとロードできなくなったため、修正が必要になっています。
+
+「旧フォーマットのチェックポイントに含まれない層（LayerNorm, fallback_attn など）が
+新仕様では必須化された」ことが原因です。
+
+これを解決するため、旧モデルを新仕様に自動変換するスクリプト（convert.py） を作成しています。
+
+convert.py は旧 checkpoint (.safetensors) を新形式に変換し、
+
+欠損層を自動的に初期化または再構成します。
+
+
+
+
 # ComfyUI LLM SDXL Adapter
 
 ![Version](https://img.shields.io/badge/version-3.0.1-blue.svg)
