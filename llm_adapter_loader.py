@@ -4,6 +4,7 @@ import logging
 import gc
 import os
 from .utils import get_llm_adapters, get_llm_adapter_path
+# このLLMToSDXLAdapterは、リファクタリング後のバージョンを参照します
 from .llm_to_sdxl_adapter import LLMToSDXLAdapter
 
 logger = logging.getLogger("LLM-SDXL-Adapter")
@@ -27,7 +28,13 @@ class LLMAdapterLoader:
                 "adapter_name": (get_llm_adapters(), {
                     "default": get_llm_adapters()[0] if get_llm_adapters() else None
                 }),
-                "type": (adapter_types, {"default": "gemma"}),
+                "type": (adapter_types, {"default": "t5gemma"}),
+                
+                # --- ★★★ 修正点: UIに温度設定を追加 ★★★ ---
+                "attention_temp": ("FLOAT", {
+                    "default": 0.75, "min": 0.1, "max": 2.0, "step": 0.05
+                }),
+                # -----------------------------------------------
             },
             "optional": {
                 "device": (["auto", "cuda:0", "cuda:1", "cpu"], {"default": "auto"}),
@@ -40,7 +47,8 @@ class LLMAdapterLoader:
     FUNCTION = "load_adapter"
     CATEGORY = "llm_sdxl"
     
-    def load_adapter(self, adapter_name, type, device="auto", force_reload=False):
+    # --- ★★★ 修正点: 関数の引数に attention_temp を追加 ★★★ ---
+    def load_adapter(self, adapter_name, type, attention_temp, device="auto", force_reload=False):
         """Load and initialize the LLM to SDXL adapter"""
         if device == "auto":
             device = self.device
@@ -48,6 +56,7 @@ class LLMAdapterLoader:
         adapter_path = get_llm_adapter_path(adapter_name)
         
         # Adapter configuration presets per type
+        # (attention_temp はUIから直接受け取るため、プリセットからは削除)
         ADAPTER_PRESETS = {
             "gemma": {
                 "llm_dim": 1152,
@@ -96,13 +105,18 @@ class LLMAdapterLoader:
                     n_narrow_blocks=config["n_narrow_blocks"],
                     num_heads=config["num_heads"],
                     dropout=config["dropout"],
+                    attention_temp=attention_temp # --- ★★★ 修正点: UIからの引数を使用 ★★★
                 )
                 
                 # Load checkpoint if file exists
                 if os.path.exists(adapter_path):
                     checkpoint = load_file(adapter_path)
+
+                    # --- オリジナルのロード処理（strict=True）に戻す ---
                     self.adapter.load_state_dict(checkpoint)
                     logger.info(f"Loaded adapter weights from {adapter_path}")
+                    # ------------------------------------------------
+
                 else:
                     logger.warning(f"Adapter file not found: {adapter_path}, using initialized weights")
                 
@@ -114,14 +128,17 @@ class LLMAdapterLoader:
                 self.current_adapter_type = type
                 logger.info("LLM to SDXL adapter loaded successfully")
             
+            # --- ★★★ 修正点: info文字列に温度を追加 ★★★ ---
             info = (
                 f"Adapter: {adapter_path}\n"
                 f"Type: {type}\n"
                 f"Device: {device}\n"
                 f"LLM dim: {config['llm_dim']}\n"
                 f"SDXL seq dim: {config['sdxl_seq_dim']}\n"
-                f"Target seq len: {config['target_seq_len']}"
+                f"Target seq len: {config['target_seq_len']}\n"
+                f"Attention Temp: {self.adapter.compression_attention.temperature}"
             )
+            # -----------------------------------------------
             
             return (self.adapter, info)
             
@@ -138,4 +155,5 @@ NODE_CLASS_MAPPINGS = {
 
 NODE_DISPLAY_NAME_MAPPINGS = {
     "LLMAdapterLoader": "LLM Adapter Loader",
-} 
+}
+
