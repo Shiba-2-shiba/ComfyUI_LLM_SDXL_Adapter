@@ -1,5 +1,9 @@
 # ComfyUI LLM SDXL Adapterのフォーク版です。
 
+変えた部分
+①　init.py　：　LLM adapterが読み込まれない場合があったので、その部分を追加。
+②　LLM Adapter loaderでattention tempを設定できるようにした。
+
 # ComfyUI LLM SDXL Adapter
 
 ![Version](https://img.shields.io/badge/version-3.0.1-blue.svg)
