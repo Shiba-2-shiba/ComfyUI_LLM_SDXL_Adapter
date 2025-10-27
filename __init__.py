@@ -1,5 +1,5 @@
 """
-ComfyUI LLM SDXL Adapter v3.0.1
+ComfyUI LLM SDXL Adapter v3.0.1 (Patched)
 
 ComfyUI nodes for using Large Language Models as text encoders for SDXL image generation through trained adapters.
 """
@@ -8,10 +8,12 @@ import logging
 import sys
 import os
 from typing import Dict, Tuple
+import folder_paths  # <-- 修正点1: folder_pathsをインポート
 
 # Setup logging
 logger = logging.getLogger("LLM-SDXL-Adapter")
-logger.setLevel(logging.WARN)
+# logger.setLevel(logging.WARN) # <-- 修正点2: ログレベルをINFOに変更し、パス登録を確認できるようにする
+logger.setLevel(logging.INFO) 
 
 # Add custom formatter with module prefix
 if not logger.handlers:
@@ -20,6 +22,39 @@ if not logger.handlers:
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     logger.propagate = False  # Prevent duplicate logs from parent loggers
+
+# === 修正点3: ここから旧バージョン(v2.0.0)のパス登録処理を追記 ===
+try:
+    comfy_path = os.path.dirname(folder_paths.__file__)
+
+    # 'llm' モデルパスを登録
+    llm_models_path = os.path.join(comfy_path, "models", "llm")
+    if not os.path.exists(llm_models_path):
+        logger.info(f"Creating 'llm' directory at: {llm_models_path}")
+        os.makedirs(llm_models_path)
+    else:
+        logger.info(f"'llm' directory found at: {llm_models_path}")
+        
+    folder_paths.add_model_folder_path("llm", llm_models_path)
+    logger.info(f"Registered 'llm' model path. ComfyUI will search: {folder_paths.get_folder_paths('llm')}")
+
+    # 'llm_adapters' モデルパスを登録
+    llm_adapters_path = os.path.join(comfy_path, "models", "llm_adapters")
+    if not os.path.exists(llm_adapters_path):
+        logger.info(f"Creating 'llm_adapters' directory at: {llm_adapters_path}")
+        os.makedirs(llm_adapters_path)
+    else:
+        logger.info(f"'llm_adapters' directory found at: {llm_adapters_path}")
+        
+    folder_paths.add_model_folder_path("llm_adapters", llm_adapters_path)
+    logger.info(f"Registered 'llm_adapters' model path. ComfyUI will search: {folder_paths.get_folder_paths('llm_adapters')}")
+
+except Exception as e:
+    logger.error(f"Failed to register model paths: {e}")
+    logger.error("Model loading (including T5gemma) might fail.")
+    logger.error("Please ensure 'folder_paths.py' exists in your ComfyUI directory.")
+# === パス登録処理ここまで ===
+
 
 # Add current directory to path for imports
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -177,4 +212,4 @@ print(f"  Available Nodes: {len(NODE_CLASS_MAPPINGS)}")
 print(f"  Main Workflow: LLMModelLoader -> LLMTextEncoder -> LLMAdapterLoader -> ApplyLLMToSDXLAdapter -> KSampler")
 print(f"  Supports: Gemma, Llama, Mistral, and other compatible LLMs")
 print(f"  Quick Start: Use modular nodes for flexible workflows")
-print(f"{'='*60}\n") 
+print(f"{'='*60}\n")
