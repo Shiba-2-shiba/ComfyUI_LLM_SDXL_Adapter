@@ -2,7 +2,8 @@
 
 変えた部分
 ①　init.py　：　LLM adapterが読み込まれない場合があったので、その部分を追加。
-②　LLM Adapter loaderでattention tempを設定できるようにした。
+
+②　LLM Adapter loaderでattention tempを設定できるようにした。この部分の効果は限定的。
 
 # ComfyUI LLM SDXL Adapter
 
